@@ -1,0 +1,39 @@
+services:
+    changedetection:
+      image: ghcr.io/dgtlmoon/changedetection.io
+      container_name: changedetection
+      hostname: changedetection
+      volumes:
+        - changedetection-data:/datastore
+      environment:
+        # Chrome browser for JavaScript-heavy sites like Uber Eats
+        - PLAYWRIGHT_DRIVER_URL=ws://browser-sockpuppet-chrome:3000
+        # Timezone for South Africa
+        - TZ=Africa/Johannesburg
+        # Hide referer for privacy
+        - HIDE_REFERER=true
+  
+      # Mac users: Using port 5050 to avoid Airplay conflict
+      ports:
+        - 127.0.0.1:5050:5000
+      restart: unless-stopped
+      depends_on:
+          browser-sockpuppet-chrome:
+              condition: service_started
+
+    # Chrome browser for JavaScript support (required for Uber Eats)
+    browser-sockpuppet-chrome:
+        hostname: browser-sockpuppet-chrome
+        image: dgtlmoon/sockpuppetbrowser:latest
+        cap_add:
+            - SYS_ADMIN
+        restart: unless-stopped
+        environment:
+            - SCREEN_WIDTH=1920
+            - SCREEN_HEIGHT=1024
+            - SCREEN_DEPTH=16
+            - MAX_CONCURRENT_CHROME_PROCESSES=10
+
+volumes:
+  changedetection-data:
+
